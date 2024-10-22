@@ -57,6 +57,11 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             list-style: none;
             word-break: break-all;
+            font-family: monospace; /* Added for cleaner URL display */
+            cursor: pointer; /* Added to indicate clickability */
+        }
+        li:hover {
+            background-color: #f8f8f8; /* Added hover effect */
         }
         .status {
             margin-top: 10px;
@@ -103,7 +108,7 @@
         <p>Using fixed session ID: uxyzerzuvxe</p>
     </div>
 
-    <textarea id="inputBox" placeholder='Enter array like ["kanna","tharun"]'></textarea>
+    <textarea id="inputBox" placeholder='Enter array like ["https://example.com/article1", "https://example.com/article2"]'></textarea>
     <div>
         <button id="submitBtn">Submit</button>
         <button id="deleteBtn">Delete List</button>
@@ -161,9 +166,13 @@
                 listContainer.appendChild(emptyMessage);
                 return;
             }
-            array.forEach((item, index) => {
+            array.forEach((item) => {
                 const listItem = document.createElement('li');
-                listItem.textContent = `${index + 1}. ${item}`;
+                listItem.textContent = item;
+                // Make URLs clickable
+                listItem.addEventListener('click', () => {
+                    window.open(item, '_blank');
+                });
                 listContainer.appendChild(listItem);
             });
         }
@@ -205,7 +214,7 @@
                     return;
                 }
             } catch (e) {
-                showStatus('Invalid array format. Please use format: ["item1", "item2"]', true);
+                showStatus('Invalid array format. Please use format: ["url1", "url2"]', true);
                 return;
             }
 
