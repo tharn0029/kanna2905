@@ -8,36 +8,61 @@
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            background-color: #f9f9f9;
         }
         #inputBox {
             width: 100%;
             height: 100px;
             margin-bottom: 10px;
-            padding: 8px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
         }
-        #submitBtn, #deleteBtn, #sessionInput, #loadBtn {
-            margin-top: 10px;
-            padding: 8px 16px;
-            margin-right: 10px;
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
             cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #deleteBtn {
+            background-color: #f44336;
+        }
+        #deleteBtn:hover {
+            background-color: #da190b;
         }
         .controls {
             margin: 20px 0;
-            padding: 15px;
-            background: #f5f5f5;
-            border-radius: 5px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         ul {
             margin-top: 20px;
+            padding: 0;
         }
         li {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            padding: 12px;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            list-style: none;
             word-break: break-all;
         }
         .status {
             margin-top: 10px;
-            padding: 10px;
+            padding: 12px;
             border-radius: 4px;
+            transition: opacity 0.3s;
         }
         .success {
             background-color: #d4edda;
@@ -48,8 +73,23 @@
             color: #721c24;
         }
         #sessionInput {
-            padding: 8px;
+            padding: 10px;
             width: 200px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .list-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .list-header {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
         }
     </style>
 </head>
@@ -58,9 +98,9 @@
     
     <div class="controls">
         <h3>Session Control</h3>
-        <input type="text" id="sessionInput" placeholder="Enter session ID">
+        <input type="text" id="sessionInput" placeholder="Enter session ID" value="uxyzerzuvxe" readonly>
         <button id="loadBtn">Load Session</button>
-        <p>Share this session ID with others to access the same list.</p>
+        <p>Using fixed session ID: uxyzerzuvxe</p>
     </div>
 
     <textarea id="inputBox" placeholder='Enter array like ["kanna","tharun"]'></textarea>
@@ -69,12 +109,16 @@
         <button id="deleteBtn">Delete List</button>
     </div>
     <div id="status" class="status"></div>
-    <ul id="listContainer"></ul>
+    
+    <div class="list-container">
+        <div class="list-header">Stored Items:</div>
+        <ul id="listContainer"></ul>
+    </div>
 
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-        import { getDatabase, ref, set, remove, onValue, get } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+        import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
         // Your Firebase configuration
         const firebaseConfig = {
@@ -90,76 +134,69 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
-        let currentSessionId = null;
+        
+        // Set fixed session ID
+        const currentSessionId = "uxyzerzuvxe";
 
-        // Generate random session ID
-        function generateSessionId() {
-            return Math.random().toString(36).substring(2, 15);
-        }
-
-        // Show status message
         function showStatus(message, isError = false) {
             const status = document.getElementById('status');
             status.textContent = message;
             status.className = 'status ' + (isError ? 'error' : 'success');
-            setTimeout(() => status.textContent = '', 3000);
+            setTimeout(() => {
+                status.style.opacity = '0';
+                setTimeout(() => {
+                    status.textContent = '';
+                    status.style.opacity = '1';
+                }, 300);
+            }, 3000);
         }
 
-        // Display list
         function displayList(array) {
             const listContainer = document.getElementById('listContainer');
             listContainer.innerHTML = '';
-            array.forEach(function(item) {
+            if (!array || array.length === 0) {
+                const emptyMessage = document.createElement('p');
+                emptyMessage.textContent = 'No items in the list';
+                emptyMessage.style.color = '#666';
+                listContainer.appendChild(emptyMessage);
+                return;
+            }
+            array.forEach((item, index) => {
                 const listItem = document.createElement('li');
-                listItem.textContent = item;
+                listItem.textContent = `${index + 1}. ${item}`;
                 listContainer.appendChild(listItem);
             });
         }
 
-        // Load session
-        function loadSession(sessionId) {
-            if (!sessionId) {
-                showStatus('Please enter a session ID', true);
-                return;
-            }
-
-            currentSessionId = sessionId;
-            const sessionRef = ref(database, 'sessions/' + sessionId);
+        function loadSession() {
+            const sessionRef = ref(database, 'sessions/' + currentSessionId);
             
-            // Listen for changes
             onValue(sessionRef, (snapshot) => {
                 const data = snapshot.val();
                 if (data && data.array) {
                     displayList(data.array);
-                    document.getElementById('sessionInput').value = sessionId;
                     showStatus('Session loaded successfully');
                 } else {
-                    showStatus('No data found for this session', true);
+                    displayList([]);
+                    showStatus('No data found in this session');
                 }
             });
         }
 
-        // Save data
         async function saveData(array) {
-            if (!currentSessionId) {
-                currentSessionId = generateSessionId();
-            }
-
             try {
                 await set(ref(database, 'sessions/' + currentSessionId), {
                     array: array,
                     timestamp: Date.now()
                 });
-                document.getElementById('sessionInput').value = currentSessionId;
-                showStatus('Data saved successfully! Share this session ID to collaborate.');
+                showStatus('Data saved successfully!');
             } catch (error) {
                 showStatus('Error saving data: ' + error.message, true);
             }
         }
 
-        // Event Listeners
         document.getElementById('submitBtn').addEventListener('click', function() {
-            const input = document.getElementById('inputBox').value;
+            const input = document.getElementById('inputBox').value.trim();
             let array;
             try {
                 array = JSON.parse(input);
@@ -168,7 +205,7 @@
                     return;
                 }
             } catch (e) {
-                showStatus('Invalid array format.', true);
+                showStatus('Invalid array format. Please use format: ["item1", "item2"]', true);
                 return;
             }
 
@@ -176,27 +213,19 @@
         });
 
         document.getElementById('deleteBtn').addEventListener('click', async function() {
-            if (currentSessionId) {
-                try {
-                    await remove(ref(database, 'sessions/' + currentSessionId));
-                    document.getElementById('listContainer').innerHTML = '';
-                    showStatus('List deleted successfully!');
-                } catch (error) {
-                    showStatus('Error deleting data: ' + error.message, true);
-                }
+            try {
+                await remove(ref(database, 'sessions/' + currentSessionId));
+                displayList([]);
+                showStatus('List deleted successfully!');
+            } catch (error) {
+                showStatus('Error deleting data: ' + error.message, true);
             }
         });
 
-        document.getElementById('loadBtn').addEventListener('click', function() {
-            const sessionId = document.getElementById('sessionInput').value.trim();
-            loadSession(sessionId);
-        });
+        document.getElementById('loadBtn').addEventListener('click', loadSession);
 
-        // Generate initial session on load
-        window.addEventListener('load', function() {
-            currentSessionId = generateSessionId();
-            document.getElementById('sessionInput').value = currentSessionId;
-        });
+        // Load data immediately when page loads
+        window.addEventListener('load', loadSession);
     </script>
 </body>
 </html>
