@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Array to List</title>
+    <title>Array to List with Persistence</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -28,6 +28,25 @@
     <ul id="listContainer"></ul>
 
     <script>
+        // Function to render the list from localStorage
+        function renderList() {
+            const listContainer = document.getElementById('listContainer');
+            listContainer.innerHTML = '';  // Clear current list
+
+            const savedArray = JSON.parse(localStorage.getItem('listItems')) || [];
+            
+            savedArray.forEach(function(item) {
+                const listItem = document.createElement('li');
+                listItem.textContent = item;
+                listContainer.appendChild(listItem);
+            });
+        }
+
+        // Load list from localStorage on page load
+        window.onload = function() {
+            renderList();
+        };
+
         document.getElementById('submitBtn').addEventListener('click', function() {
             const input = document.getElementById('inputBox').value;
             let array;
@@ -43,19 +62,20 @@
                 return;
             }
 
-            const listContainer = document.getElementById('listContainer');
-            listContainer.innerHTML = '';
+            // Save array to localStorage
+            localStorage.setItem('listItems', JSON.stringify(array));
 
-            array.forEach(function(item) {
-                const listItem = document.createElement('li');
-                listItem.textContent = item;
-                listContainer.appendChild(listItem);
-            });
+            // Render updated list
+            renderList();
         });
 
         document.getElementById('deleteBtn').addEventListener('click', function() {
+            // Clear the list and input box
             document.getElementById('listContainer').innerHTML = '';
-            document.getElementById('inputBox').value = '';  // Clear the input box
+            document.getElementById('inputBox').value = '';
+
+            // Remove items from localStorage
+            localStorage.removeItem('listItems');
         });
     </script>
 </body>
