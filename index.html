@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Array to List with Persistence</title>
+    <title>Array to List with Cloud Storage</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,11 +15,17 @@
             margin-bottom: 10px;
             padding: 8px;
         }
-        #submitBtn, #deleteBtn {
+        #submitBtn, #deleteBtn, #sessionInput, #loadBtn {
             margin-top: 10px;
             padding: 8px 16px;
             margin-right: 10px;
             cursor: pointer;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
         }
         ul {
             margin-top: 20px;
@@ -30,12 +36,33 @@
         }
         .status {
             margin-top: 10px;
-            color: green;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        #sessionInput {
+            padding: 8px;
+            width: 200px;
         }
     </style>
 </head>
 <body>
-    <h2>Enter Array</h2>
+    <h2>Shared Array List</h2>
+    
+    <div class="controls">
+        <h3>Session Control</h3>
+        <input type="text" id="sessionInput" placeholder="Enter session ID">
+        <button id="loadBtn">Load Session</button>
+        <p>Share this session ID with others to access the same list.</p>
+    </div>
+
     <textarea id="inputBox" placeholder='Enter array like ["kanna","tharun"]'></textarea>
     <div>
         <button id="submitBtn">Submit</button>
@@ -44,29 +71,41 @@
     <div id="status" class="status"></div>
     <ul id="listContainer"></ul>
 
-    <script>
-        // Function to show status message
-        function showStatus(message) {
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+        import { getDatabase, ref, set, remove, onValue, get } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzoBSx_L0q49S3CBgTOQSsuHKJolzWEeY",
+            authDomain: "newspasting.firebaseapp.com",
+            databaseURL: "https://newspasting-default-rtdb.firebaseio.com",
+            projectId: "newspasting",
+            storageBucket: "newspasting.appspot.com",
+            messagingSenderId: "400698614921",
+            appId: "1:400698614921:web:19407b85ce7f78aaab1258"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        let currentSessionId = null;
+
+        // Generate random session ID
+        function generateSessionId() {
+            return Math.random().toString(36).substring(2, 15);
+        }
+
+        // Show status message
+        function showStatus(message, isError = false) {
             const status = document.getElementById('status');
             status.textContent = message;
+            status.className = 'status ' + (isError ? 'error' : 'success');
             setTimeout(() => status.textContent = '', 3000);
         }
 
-        // Function to save data to localStorage
-        function saveToLocalStorage(array) {
-            localStorage.setItem('listData', JSON.stringify(array));
-        }
-
-        // Function to load data from localStorage
-        function loadFromLocalStorage() {
-            const data = localStorage.getItem('listData');
-            if (data) {
-                return JSON.parse(data);
-            }
-            return null;
-        }
-
-        // Function to display the list
+        // Display list
         function displayList(array) {
             const listContainer = document.getElementById('listContainer');
             listContainer.innerHTML = '';
@@ -77,39 +116,86 @@
             });
         }
 
-        // Load saved data when page loads
-        window.addEventListener('load', function() {
-            const savedData = loadFromLocalStorage();
-            if (savedData) {
-                displayList(savedData);
+        // Load session
+        function loadSession(sessionId) {
+            if (!sessionId) {
+                showStatus('Please enter a session ID', true);
+                return;
             }
-        });
 
-        // Submit button handler
+            currentSessionId = sessionId;
+            const sessionRef = ref(database, 'sessions/' + sessionId);
+            
+            // Listen for changes
+            onValue(sessionRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.array) {
+                    displayList(data.array);
+                    document.getElementById('sessionInput').value = sessionId;
+                    showStatus('Session loaded successfully');
+                } else {
+                    showStatus('No data found for this session', true);
+                }
+            });
+        }
+
+        // Save data
+        async function saveData(array) {
+            if (!currentSessionId) {
+                currentSessionId = generateSessionId();
+            }
+
+            try {
+                await set(ref(database, 'sessions/' + currentSessionId), {
+                    array: array,
+                    timestamp: Date.now()
+                });
+                document.getElementById('sessionInput').value = currentSessionId;
+                showStatus('Data saved successfully! Share this session ID to collaborate.');
+            } catch (error) {
+                showStatus('Error saving data: ' + error.message, true);
+            }
+        }
+
+        // Event Listeners
         document.getElementById('submitBtn').addEventListener('click', function() {
             const input = document.getElementById('inputBox').value;
             let array;
             try {
                 array = JSON.parse(input);
                 if (!Array.isArray(array)) {
-                    alert('Please enter a valid array.');
+                    showStatus('Please enter a valid array.', true);
                     return;
                 }
             } catch (e) {
-                alert('Invalid array format.');
+                showStatus('Invalid array format.', true);
                 return;
             }
 
-            displayList(array);
-            saveToLocalStorage(array);
-            showStatus('Data saved successfully!');
+            saveData(array);
         });
 
-        // Delete button handler
-        document.getElementById('deleteBtn').addEventListener('click', function() {
-            document.getElementById('listContainer').innerHTML = '';
-            localStorage.removeItem('listData');
-            showStatus('List deleted successfully!');
+        document.getElementById('deleteBtn').addEventListener('click', async function() {
+            if (currentSessionId) {
+                try {
+                    await remove(ref(database, 'sessions/' + currentSessionId));
+                    document.getElementById('listContainer').innerHTML = '';
+                    showStatus('List deleted successfully!');
+                } catch (error) {
+                    showStatus('Error deleting data: ' + error.message, true);
+                }
+            }
+        });
+
+        document.getElementById('loadBtn').addEventListener('click', function() {
+            const sessionId = document.getElementById('sessionInput').value.trim();
+            loadSession(sessionId);
+        });
+
+        // Generate initial session on load
+        window.addEventListener('load', function() {
+            currentSessionId = generateSessionId();
+            document.getElementById('sessionInput').value = currentSessionId;
         });
     </script>
 </body>
