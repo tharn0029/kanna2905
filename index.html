@@ -1,240 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Array to List with Cloud Storage</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Extractor</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
-            margin: 0 auto;
+            margin: 20px auto;
             padding: 20px;
-            background-color: #f9f9f9;
         }
-        #inputBox {
+        textarea {
             width: 100%;
             height: 100px;
-            margin-bottom: 10px;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 14px;
+            margin: 10px 0;
+            padding: 10px;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
         }
         button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
             padding: 10px 20px;
+            border: none;
             border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            color: white;
         }
-        button:hover {
+        .extract-btn {
+            background-color: #4CAF50;
+        }
+        .extract-btn:hover {
             background-color: #45a049;
         }
-        #deleteBtn {
+        .delete-btn {
             background-color: #f44336;
         }
-        #deleteBtn:hover {
+        .delete-btn:hover {
             background-color: #da190b;
-        }
-        .controls {
-            margin: 20px 0;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        ul {
-            margin-top: 20px;
-            padding: 0;
-        }
-        li {
-            margin-bottom: 10px;
-            padding: 12px;
-            background: white;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            list-style: none;
-            word-break: break-all;
-            font-family: monospace; /* Added for cleaner URL display */
-            cursor: pointer; /* Added to indicate clickability */
-        }
-        li:hover {
-            background-color: #f8f8f8; /* Added hover effect */
-        }
-        .status {
-            margin-top: 10px;
-            padding: 12px;
-            border-radius: 4px;
-            transition: opacity 0.3s;
-        }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        #sessionInput {
-            padding: 10px;
-            width: 200px;
-            border: 2px solid #ddd;
-            border-radius: 4px;
-            margin-right: 10px;
-        }
-        .list-container {
-            margin-top: 20px;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .list-header {
-            font-size: 18px;
-            margin-bottom: 15px;
-            color: #333;
         }
     </style>
 </head>
 <body>
-    <h2>Shared Array List</h2>
+    <h1>Message Extractor</h1>
+    <p>Paste your array in the format: ["&lt;Ostart&gt;Kanna&lt;Oend&gt;","&lt;Ostart&gt;Tharun&lt;Oend&gt;"]</p>
     
-    <div class="controls">
-        <h3>Session Control</h3>
-        <input type="text" id="sessionInput" placeholder="Enter session ID" value="uxyzerzuvxe" readonly>
-        <button id="loadBtn">Load Session</button>
-        <p>Using fixed session ID: uxyzerzuvxe</p>
+    <textarea id="inputArray" placeholder='Enter your array here...'></textarea>
+    <div class="button-group">
+        <button class="extract-btn" onclick="extractLastMessage()">Extract Last Message</button>
+        <button class="delete-btn" onclick="deleteContent()">Delete</button>
     </div>
-
-    <textarea id="inputBox" placeholder='Enter array like ["https://example.com/article1", "https://example.com/article2"]'></textarea>
-    <div>
-        <button id="submitBtn">Submit</button>
-        <button id="deleteBtn">Delete List</button>
-    </div>
-    <div id="status" class="status"></div>
     
-    <div class="list-container">
-        <div class="list-header">Stored Items:</div>
-        <ul id="listContainer"></ul>
-    </div>
+    <div id="result"></div>
 
-    <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-        import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
-
-        // Your Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAzoBSx_L0q49S3CBgTOQSsuHKJolzWEeY",
-            authDomain: "newspasting.firebaseapp.com",
-            databaseURL: "https://newspasting-default-rtdb.firebaseio.com",
-            projectId: "newspasting",
-            storageBucket: "newspasting.appspot.com",
-            messagingSenderId: "400698614921",
-            appId: "1:400698614921:web:19407b85ce7f78aaab1258"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        
-        // Set fixed session ID
-        const currentSessionId = "uxyzerzuvxe";
-
-        function showStatus(message, isError = false) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = 'status ' + (isError ? 'error' : 'success');
-            setTimeout(() => {
-                status.style.opacity = '0';
-                setTimeout(() => {
-                    status.textContent = '';
-                    status.style.opacity = '1';
-                }, 300);
-            }, 3000);
-        }
-
-        function displayList(array) {
-            const listContainer = document.getElementById('listContainer');
-            listContainer.innerHTML = '';
-            if (!array || array.length === 0) {
-                const emptyMessage = document.createElement('p');
-                emptyMessage.textContent = 'No items in the list';
-                emptyMessage.style.color = '#666';
-                listContainer.appendChild(emptyMessage);
-                return;
-            }
-            array.forEach((item) => {
-                const listItem = document.createElement('li');
-                listItem.textContent = item;
-                // Make URLs clickable
-                listItem.addEventListener('click', () => {
-                    window.open(item, '_blank');
-                });
-                listContainer.appendChild(listItem);
-            });
-        }
-
-        function loadSession() {
-            const sessionRef = ref(database, 'sessions/' + currentSessionId);
-            
-            onValue(sessionRef, (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.array) {
-                    displayList(data.array);
-                    showStatus('Session loaded successfully');
-                } else {
-                    displayList([]);
-                    showStatus('No data found in this session');
-                }
-            });
-        }
-
-        async function saveData(array) {
+    <script>
+        function extractLastMessage() {
             try {
-                await set(ref(database, 'sessions/' + currentSessionId), {
-                    array: array,
-                    timestamp: Date.now()
-                });
-                showStatus('Data saved successfully!');
+                // Get the input value and parse it as JSON
+                const input = document.getElementById('inputArray').value;
+                const array = JSON.parse(input);
+                
+                // Get the last element
+                const lastElement = array[array.length - 1];
+                
+                // Remove the tags using regex
+                const cleanMessage = lastElement.replace(/<Ostart>|<Oend>/g, '');
+                
+                // Display the result without any heading
+                document.getElementById('result').innerHTML = cleanMessage;
             } catch (error) {
-                showStatus('Error saving data: ' + error.message, true);
+                document.getElementById('result').innerHTML = `
+                    <span style="color: red;">Error: Please check your input format. Make sure it's a valid array.</span>
+                `;
             }
         }
 
-        document.getElementById('submitBtn').addEventListener('click', function() {
-            const input = document.getElementById('inputBox').value.trim();
-            let array;
-            try {
-                array = JSON.parse(input);
-                if (!Array.isArray(array)) {
-                    showStatus('Please enter a valid array.', true);
-                    return;
-                }
-            } catch (e) {
-                showStatus('Invalid array format. Please use format: ["url1", "url2"]', true);
-                return;
-            }
-
-            saveData(array);
-        });
-
-        document.getElementById('deleteBtn').addEventListener('click', async function() {
-            try {
-                await remove(ref(database, 'sessions/' + currentSessionId));
-                displayList([]);
-                showStatus('List deleted successfully!');
-            } catch (error) {
-                showStatus('Error deleting data: ' + error.message, true);
-            }
-        });
-
-        document.getElementById('loadBtn').addEventListener('click', loadSession);
-
-        // Load data immediately when page loads
-        window.addEventListener('load', loadSession);
+        function deleteContent() {
+            // Clear the textarea
+            document.getElementById('inputArray').value = '';
+            // Clear the result
+            document.getElementById('result').innerHTML = '';
+        }
     </script>
 </body>
 </html>
