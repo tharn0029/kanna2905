@@ -48,13 +48,29 @@
         .delete-btn:hover {
             background-color: #da190b;
         }
+        .format-examples {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .format-examples code {
+            display: block;
+            margin: 5px 0;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
     <h1>Message Extractor</h1>
-    <p>Paste your array in the format: ["&lt;Ostart&gt;Kanna&lt;Oend&gt;","&lt;Ostart&gt;Tharun&lt;Oend&gt;"]</p>
+    <div class="format-examples">
+        <p>Paste your text in either format:</p>
+        <code>["&lt;Ostart&gt;Kanna&lt;Oend&gt;","&lt;Ostart&gt;Tharun&lt;Oend&gt;"]</code>
+        <p>OR</p>
+        <code>"&lt;Ostart&gt;Kanna&lt;Oend&gt;"</code>
+    </div>
     
-    <textarea id="inputArray" placeholder='Enter your array here...'></textarea>
+    <textarea id="inputArray" placeholder='Enter your text here...'></textarea>
     <div class="button-group">
         <button class="extract-btn" onclick="extractLastMessage()">Extract Last Message</button>
         <button class="delete-btn" onclick="deleteContent()">Delete</button>
@@ -65,21 +81,35 @@
     <script>
         function extractLastMessage() {
             try {
-                // Get the input value and parse it as JSON
-                const input = document.getElementById('inputArray').value;
-                const array = JSON.parse(input);
-                
-                // Get the last element
-                const lastElement = array[array.length - 1];
-                
-                // Remove the tags using regex
-                const cleanMessage = lastElement.replace(/<Ostart>|<Oend>/g, '');
-                
-                // Display the result without any heading
+                let input = document.getElementById('inputArray').value.trim();
+                let cleanMessage = '';
+
+                // Check if input is a valid JSON (array or string)
+                try {
+                    const parsedInput = JSON.parse(input);
+                    
+                    if (Array.isArray(parsedInput)) {
+                        // If it's an array, get the last element
+                        cleanMessage = parsedInput[parsedInput.length - 1].replace(/<Ostart>|<Oend>/g, '');
+                    } else if (typeof parsedInput === 'string') {
+                        // If it's a string, process it directly
+                        cleanMessage = parsedInput.replace(/<Ostart>|<Oend>/g, '');
+                    }
+                } catch (e) {
+                    // If JSON.parse fails, check if it's a raw string with tags
+                    if (input.includes('<Ostart>') && input.includes('<Oend>')) {
+                        cleanMessage = input.replace(/<Ostart>|<Oend>/g, '').replace(/"/g, '');
+                    } else {
+                        throw new Error('Invalid format');
+                    }
+                }
+
+                // Display the result
                 document.getElementById('result').innerHTML = cleanMessage;
+                
             } catch (error) {
                 document.getElementById('result').innerHTML = `
-                    <span style="color: red;">Error: Please check your input format. Make sure it's a valid array.</span>
+                    <span style="color: red;">Error: Please check your input format. Make sure it follows one of the example formats shown above.</span>
                 `;
             }
         }
