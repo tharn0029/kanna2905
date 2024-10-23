@@ -48,6 +48,11 @@
         .delete-btn:hover {
             background-color: #da190b;
         }
+        .writing-btn {
+            background-color: #2196F3;
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
         .format-examples {
             background-color: #f8f9fa;
             padding: 15px;
@@ -58,6 +63,10 @@
             display: block;
             margin: 5px 0;
             font-family: monospace;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
 </head>
@@ -74,29 +83,54 @@
     <div class="button-group">
         <button class="extract-btn" onclick="extractLastMessage()">Extract Last Message</button>
         <button class="delete-btn" onclick="deleteContent()">Delete</button>
+        <button class="writing-btn" id="writingButton">Writing...</button>
     </div>
     
     <div id="result"></div>
 
     <script>
+        let typingTimer;
+        const writingButton = document.getElementById('writingButton');
+        const inputField = document.getElementById('inputArray');
+
+        // Function to show Writing button
+        function showWritingButton() {
+            writingButton.style.display = 'block';
+        }
+
+        // Function to hide Writing button
+        function hideWritingButton() {
+            writingButton.style.display = 'none';
+        }
+
+        // Input event listener
+        inputField.addEventListener('input', function() {
+            // Show button immediately when typing starts
+            showWritingButton();
+            
+            // Clear the existing timer
+            clearTimeout(typingTimer);
+            
+            // Set new timer
+            typingTimer = setTimeout(() => {
+                hideWritingButton();
+            }, 2000); // 2 seconds delay
+        });
+
         function extractLastMessage() {
             try {
                 let input = document.getElementById('inputArray').value.trim();
                 let cleanMessage = '';
 
-                // Check if input is a valid JSON (array or string)
                 try {
                     const parsedInput = JSON.parse(input);
                     
                     if (Array.isArray(parsedInput)) {
-                        // If it's an array, get the last element
                         cleanMessage = parsedInput[parsedInput.length - 1].replace(/<Ostart>|<Oend>/g, '');
                     } else if (typeof parsedInput === 'string') {
-                        // If it's a string, process it directly
                         cleanMessage = parsedInput.replace(/<Ostart>|<Oend>/g, '');
                     }
                 } catch (e) {
-                    // If JSON.parse fails, check if it's a raw string with tags
                     if (input.includes('<Ostart>') && input.includes('<Oend>')) {
                         cleanMessage = input.replace(/<Ostart>|<Oend>/g, '').replace(/"/g, '');
                     } else {
@@ -104,7 +138,6 @@
                     }
                 }
 
-                // Display the result
                 document.getElementById('result').innerHTML = cleanMessage;
                 
             } catch (error) {
@@ -115,10 +148,9 @@
         }
 
         function deleteContent() {
-            // Clear the textarea
             document.getElementById('inputArray').value = '';
-            // Clear the result
             document.getElementById('result').innerHTML = '';
+            hideWritingButton();
         }
     </script>
 </body>
