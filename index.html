@@ -1,240 +1,244 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Array to List with Cloud Storage</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f9f9f9;
-        }
-        #inputBox {
-            width: 100%;
-            height: 100px;
-            margin-bottom: 10px;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 14px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #deleteBtn {
-            background-color: #f44336;
-        }
-        #deleteBtn:hover {
-            background-color: #da190b;
-        }
-        .controls {
-            margin: 20px 0;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        ul {
-            margin-top: 20px;
-            padding: 0;
-        }
-        li {
-            margin-bottom: 10px;
-            padding: 12px;
-            background: white;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            list-style: none;
-            word-break: break-all;
-            font-family: monospace; /* Added for cleaner URL display */
-            cursor: pointer; /* Added to indicate clickability */
-        }
-        li:hover {
-            background-color: #f8f8f8; /* Added hover effect */
-        }
-        .status {
-            margin-top: 10px;
-            padding: 12px;
-            border-radius: 4px;
-            transition: opacity 0.3s;
-        }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        #sessionInput {
-            padding: 10px;
-            width: 200px;
-            border: 2px solid #ddd;
-            border-radius: 4px;
-            margin-right: 10px;
-        }
-        .list-container {
-            margin-top: 20px;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .list-header {
-            font-size: 18px;
-            margin-bottom: 15px;
-            color: #333;
-        }
-    </style>
+<title>Array to List with Cloud Storage</title>
+<style>
+body {
+font-family: Arial, sans-serif;
+max-width: 800px;
+margin: 0 auto;
+padding: 20px;
+background-color: #f9f9f9;
+}
+#inputBox {
+width: 100%;
+height: 100px;
+margin-bottom: 10px;
+padding: 12px;
+border: 2px solid #ddd;
+border-radius: 6px;
+font-family: monospace;
+font-size: 14px;
+}
+button {
+background-color: #4CAF50;
+color: white;
+border: none;
+padding: 10px 20px;
+border-radius: 4px;
+cursor: pointer;
+transition: background-color 0.3s;
+}
+button:hover {
+background-color: #45a049;
+}
+#deleteBtn {
+background-color: #f44336;
+}
+#deleteBtn:hover {
+background-color: #da190b;
+}
+.controls {
+margin: 20px 0;
+padding: 20px;
+background: white;
+border-radius: 8px;
+box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+ul {
+margin-top: 20px;
+padding: 0;
+}
+li {
+margin-bottom: 10px;
+padding: 12px;
+background: white;
+border-radius: 4px;
+box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+list-style: none;
+word-break: break-all;
+font-family: monospace; /* Added for cleaner URL display */
+cursor: pointer; /* Added to indicate clickability */
+}
+li:hover {
+background-color: #f8f8f8; /* Added hover effect */
+}
+.status {
+margin-top: 10px;
+padding: 12px;
+border-radius: 4px;
+transition: opacity 0.3s;
+}
+.success {
+background-color: #d4edda;
+color: #155724;
+}
+.error {
+background-color: #f8d7da;
+color: #721c24;
+}
+#sessionInput {
+padding: 10px;
+width: 200px;
+border: 2px solid #ddd;
+border-radius: 4px;
+margin-right: 10px;
+}
+.list-container {
+margin-top: 20px;
+padding: 20px;
+background: white;
+border-radius: 8px;
+box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.list-header {
+font-size: 18px;
+margin-bottom: 15px;
+color: #333;
+}
+</style>
 </head>
 <body>
-    <h2>Shared Array List</h2>
-    
-    <div class="controls">
-        <h3>Session Control</h3>
-        <input type="text" id="sessionInput" placeholder="Enter session ID" value="uxyzerzuvxe" readonly>
-        <button id="loadBtn">Load Session</button>
-        <p>Using fixed session ID: uxyzerzuvxe</p>
-    </div>
+<h2>Shared Array List</h2>
 
-    <textarea id="inputBox" placeholder='Enter array like ["https://example.com/article1", "https://example.com/article2"]'></textarea>
-    <div>
-        <button id="submitBtn">Submit</button>
-        <button id="deleteBtn">Delete List</button>
-    </div>
-    <div id="status" class="status"></div>
-    
-    <div class="list-container">
-        <div class="list-header">Stored Items:</div>
-        <ul id="listContainer"></ul>
-    </div>
+```
+<div class="controls">
+    <h3>Session Control</h3>
+    <input type="text" id="sessionInput" placeholder="Enter session ID" value="uxyzerzuvxe" readonly>
+    <button id="loadBtn">Load Session</button>
+    <p>Using fixed session ID: uxyzerzuvxe</p>
+</div>
 
-    <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-        import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+<textarea id="inputBox" placeholder='Enter array like ["<https://example.com/article1>", "<https://example.com/article2>"]'></textarea>
+<div>
+    <button id="submitBtn">Submit</button>
+    <button id="deleteBtn">Delete List</button>
+</div>
+<div id="status" class="status"></div>
 
-        // Your Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAzoBSx_L0q49S3CBgTOQSsuHKJolzWEeY",
-            authDomain: "newspasting.firebaseapp.com",
-            databaseURL: "https://newspasting-default-rtdb.firebaseio.com",
-            projectId: "newspasting",
-            storageBucket: "newspasting.appspot.com",
-            messagingSenderId: "400698614921",
-            appId: "1:400698614921:web:19407b85ce7f78aaab1258"
-        };
+<div class="list-container">
+    <div class="list-header">Stored Items:</div>
+    <ul id="listContainer"></ul>
+</div>
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        
-        // Set fixed session ID
-        const currentSessionId = "uxyzerzuvxe";
+<script type="module">
+    // Import Firebase modules
+    import { initializeApp } from "<https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js>";
+    import { getDatabase, ref, set, remove, onValue } from "<https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js>";
 
-        function showStatus(message, isError = false) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = 'status ' + (isError ? 'error' : 'success');
+    // Your Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAzoBSx_L0q49S3CBgTOQSsuHKJolzWEeY",
+        authDomain: "newspasting.firebaseapp.com",
+        databaseURL: "<https://newspasting-default-rtdb.firebaseio.com>",
+        projectId: "newspasting",
+        storageBucket: "newspasting.appspot.com",
+        messagingSenderId: "400698614921",
+        appId: "1:400698614921:web:19407b85ce7f78aaab1258"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // Set fixed session ID
+    const currentSessionId = "uxyzerzuvxe";
+
+    function showStatus(message, isError = false) {
+        const status = document.getElementById('status');
+        status.textContent = message;
+        status.className = 'status ' + (isError ? 'error' : 'success');
+        setTimeout(() => {
+            status.style.opacity = '0';
             setTimeout(() => {
-                status.style.opacity = '0';
-                setTimeout(() => {
-                    status.textContent = '';
-                    status.style.opacity = '1';
-                }, 300);
-            }, 3000);
-        }
+                status.textContent = '';
+                status.style.opacity = '1';
+            }, 300);
+        }, 3000);
+    }
 
-        function displayList(array) {
-            const listContainer = document.getElementById('listContainer');
-            listContainer.innerHTML = '';
-            if (!array || array.length === 0) {
-                const emptyMessage = document.createElement('p');
-                emptyMessage.textContent = 'No items in the list';
-                emptyMessage.style.color = '#666';
-                listContainer.appendChild(emptyMessage);
-                return;
-            }
-            array.forEach((item) => {
-                const listItem = document.createElement('li');
-                listItem.textContent = item;
-                // Make URLs clickable
-                listItem.addEventListener('click', () => {
-                    window.open(item, '_blank');
-                });
-                listContainer.appendChild(listItem);
+    function displayList(array) {
+        const listContainer = document.getElementById('listContainer');
+        listContainer.innerHTML = '';
+        if (!array || array.length === 0) {
+            const emptyMessage = document.createElement('p');
+            emptyMessage.textContent = 'No items in the list';
+            emptyMessage.style.color = '#666';
+            listContainer.appendChild(emptyMessage);
+            return;
+        }
+        array.forEach((item) => {
+            const listItem = document.createElement('li');
+            listItem.textContent = item;
+            // Make URLs clickable
+            listItem.addEventListener('click', () => {
+                window.open(item, '_blank');
             });
-        }
-
-        function loadSession() {
-            const sessionRef = ref(database, 'sessions/' + currentSessionId);
-            
-            onValue(sessionRef, (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.array) {
-                    displayList(data.array);
-                    showStatus('Session loaded successfully');
-                } else {
-                    displayList([]);
-                    showStatus('No data found in this session');
-                }
-            });
-        }
-
-        async function saveData(array) {
-            try {
-                await set(ref(database, 'sessions/' + currentSessionId), {
-                    array: array,
-                    timestamp: Date.now()
-                });
-                showStatus('Data saved successfully!');
-            } catch (error) {
-                showStatus('Error saving data: ' + error.message, true);
-            }
-        }
-
-        document.getElementById('submitBtn').addEventListener('click', function() {
-            const input = document.getElementById('inputBox').value.trim();
-            let array;
-            try {
-                array = JSON.parse(input);
-                if (!Array.isArray(array)) {
-                    showStatus('Please enter a valid array.', true);
-                    return;
-                }
-            } catch (e) {
-                showStatus('Invalid array format. Please use format: ["url1", "url2"]', true);
-                return;
-            }
-
-            saveData(array);
+            listContainer.appendChild(listItem);
         });
+    }
 
-        document.getElementById('deleteBtn').addEventListener('click', async function() {
-            try {
-                await remove(ref(database, 'sessions/' + currentSessionId));
+    function loadSession() {
+        const sessionRef = ref(database, 'sessions/' + currentSessionId);
+
+        onValue(sessionRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.array) {
+                displayList(data.array);
+                showStatus('Session loaded successfully');
+            } else {
                 displayList([]);
-                showStatus('List deleted successfully!');
-            } catch (error) {
-                showStatus('Error deleting data: ' + error.message, true);
+                showStatus('No data found in this session');
             }
         });
+    }
 
-        document.getElementById('loadBtn').addEventListener('click', loadSession);
+    async function saveData(array) {
+        try {
+            await set(ref(database, 'sessions/' + currentSessionId), {
+                array: array,
+                timestamp: Date.now()
+            });
+            showStatus('Data saved successfully!');
+        } catch (error) {
+            showStatus('Error saving data: ' + error.message, true);
+        }
+    }
 
-        // Load data immediately when page loads
-        window.addEventListener('load', loadSession);
-    </script>
+    document.getElementById('submitBtn').addEventListener('click', function() {
+        const input = document.getElementById('inputBox').value.trim();
+        let array;
+        try {
+            array = JSON.parse(input);
+            if (!Array.isArray(array)) {
+                showStatus('Please enter a valid array.', true);
+                return;
+            }
+        } catch (e) {
+            showStatus('Invalid array format. Please use format: ["url1", "url2"]', true);
+            return;
+        }
+
+        saveData(array);
+    });
+
+    document.getElementById('deleteBtn').addEventListener('click', async function() {
+        try {
+            await remove(ref(database, 'sessions/' + currentSessionId));
+            displayList([]);
+            showStatus('List deleted successfully!');
+        } catch (error) {
+            showStatus('Error deleting data: ' + error.message, true);
+        }
+    });
+
+    document.getElementById('loadBtn').addEventListener('click', loadSession);
+
+    // Load data immediately when page loads
+    window.addEventListener('load', loadSession);
+</script>
+
+```
+
 </body>
 </html>
