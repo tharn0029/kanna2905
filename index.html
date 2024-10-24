@@ -4,104 +4,123 @@
 <title>Array to List with Cloud Storage</title>
 <style>
 body {
-font-family: Arial, sans-serif;
-max-width: 800px;
-margin: 0 auto;
-padding: 20px;
-background-color: #f9f9f9;
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
 }
 #inputBox {
-width: 100%;
-height: 100px;
-margin-bottom: 10px;
-padding: 12px;
-border: 2px solid #ddd;
-border-radius: 6px;
-font-family: monospace;
-font-size: 14px;
+    width: 100%;
+    height: 100px;
+    margin-bottom: 10px;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 14px;
 }
 button {
-background-color: #4CAF50;
-color: white;
-border: none;
-padding: 10px 20px;
-border-radius: 4px;
-cursor: pointer;
-transition: background-color 0.3s;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-right: 10px;
+    margin-bottom: 10px;
 }
 button:hover {
-background-color: #45a049;
+    background-color: #45a049;
 }
 #deleteBtn {
-background-color: #f44336;
+    background-color: #f44336;
 }
 #deleteBtn:hover {
-background-color: #da190b;
+    background-color: #da190b;
+}
+#clearInputBtn {
+    background-color: #ff9800;
+}
+#clearInputBtn:hover {
+    background-color: #f57c00;
+}
+#addNoBtn {
+    background-color: #2196F3;
+}
+#addNoBtn:hover {
+    background-color: #1976D2;
 }
 .controls {
-margin: 20px 0;
-padding: 20px;
-background: white;
-border-radius: 8px;
-box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 20px 0;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 ul {
-margin-top: 20px;
-padding: 0;
+    margin-top: 20px;
+    padding: 0;
 }
 li {
-margin-bottom: 10px;
-padding: 12px;
-background: white;
-border-radius: 4px;
-box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-list-style: none;
-word-break: break-all;
-font-family: monospace; /* Added for cleaner URL display */
-cursor: pointer; /* Added to indicate clickability */
+    margin-bottom: 10px;
+    padding: 12px;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    list-style: none;
+    word-break: break-all;
+    font-family: monospace;
+    cursor: pointer;
 }
 li:hover {
-background-color: #f8f8f8; /* Added hover effect */
+    background-color: #f8f8f8;
 }
 .status {
-margin-top: 10px;
-padding: 12px;
-border-radius: 4px;
-transition: opacity 0.3s;
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 4px;
+    transition: opacity 0.3s;
 }
 .success {
-background-color: #d4edda;
-color: #155724;
+    background-color: #d4edda;
+    color: #155724;
 }
 .error {
-background-color: #f8d7da;
-color: #721c24;
+    background-color: #f8d7da;
+    color: #721c24;
 }
 #sessionInput {
-padding: 10px;
-width: 200px;
-border: 2px solid #ddd;
-border-radius: 4px;
-margin-right: 10px;
+    padding: 10px;
+    width: 200px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    margin-right: 10px;
 }
 .list-container {
-margin-top: 20px;
-padding: 20px;
-background: white;
-border-radius: 8px;
-box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-top: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 .list-header {
-font-size: 18px;
-margin-bottom: 15px;
-color: #333;
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #333;
+}
+.button-group {
+    margin: 10px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 </style>
 </head>
 <body>
 <h2>Shared Array List</h2>
 
-```
 <div class="controls">
     <h3>Session Control</h3>
     <input type="text" id="sessionInput" placeholder="Enter session ID" value="uxyzerzuvxe" readonly>
@@ -109,10 +128,12 @@ color: #333;
     <p>Using fixed session ID: uxyzerzuvxe</p>
 </div>
 
-<textarea id="inputBox" placeholder='Enter array like ["<https://example.com/article1>", "<https://example.com/article2>"]'></textarea>
-<div>
+<textarea id="inputBox" placeholder='Enter array like ["https://example.com/article1"] or ["https://example.com/article1", "https://example.com/article2"]'></textarea>
+<div class="button-group">
     <button id="submitBtn">Submit</button>
-    <button id="deleteBtn">Delete List</button>
+    <button id="clearInputBtn">Clear Input</button>
+    <button id="deleteBtn">Delete All</button>
+    <button id="addNoBtn">Add NO</button>
 </div>
 <div id="status" class="status"></div>
 
@@ -123,14 +144,14 @@ color: #333;
 
 <script type="module">
     // Import Firebase modules
-    import { initializeApp } from "<https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js>";
-    import { getDatabase, ref, set, remove, onValue } from "<https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js>";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
 
     // Your Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyAzoBSx_L0q49S3CBgTOQSsuHKJolzWEeY",
         authDomain: "newspasting.firebaseapp.com",
-        databaseURL: "<https://newspasting-default-rtdb.firebaseio.com>",
+        databaseURL: "https://newspasting-default-rtdb.firebaseio.com",
         projectId: "newspasting",
         storageBucket: "newspasting.appspot.com",
         messagingSenderId: "400698614921",
@@ -170,7 +191,6 @@ color: #333;
         array.forEach((item) => {
             const listItem = document.createElement('li');
             listItem.textContent = item;
-            // Make URLs clickable
             listItem.addEventListener('click', () => {
                 window.open(item, '_blank');
             });
@@ -178,15 +198,19 @@ color: #333;
         });
     }
 
+    let currentArray = [];
+
     function loadSession() {
         const sessionRef = ref(database, 'sessions/' + currentSessionId);
 
         onValue(sessionRef, (snapshot) => {
             const data = snapshot.val();
             if (data && data.array) {
+                currentArray = data.array;
                 displayList(data.array);
                 showStatus('Session loaded successfully');
             } else {
+                currentArray = [];
                 displayList([]);
                 showStatus('No data found in this session');
             }
@@ -199,6 +223,7 @@ color: #333;
                 array: array,
                 timestamp: Date.now()
             });
+            currentArray = array;
             showStatus('Data saved successfully!');
         } catch (error) {
             showStatus('Error saving data: ' + error.message, true);
@@ -210,25 +235,39 @@ color: #333;
         let array;
         try {
             array = JSON.parse(input);
-            if (!Array.isArray(array)) {
-                showStatus('Please enter a valid array.', true);
-                return;
-            }
+            // Convert single item or array to array format
+            array = Array.isArray(array) ? array : [array];
+            saveData(array);
         } catch (e) {
-            showStatus('Invalid array format. Please use format: ["url1", "url2"]', true);
-            return;
+            showStatus('Invalid array format. Please use format: ["url1"] or ["url1", "url2"]', true);
         }
+    });
 
-        saveData(array);
+    document.getElementById('clearInputBtn').addEventListener('click', function() {
+        document.getElementById('inputBox').value = '';
+        showStatus('Input cleared');
     });
 
     document.getElementById('deleteBtn').addEventListener('click', async function() {
         try {
             await remove(ref(database, 'sessions/' + currentSessionId));
+            document.getElementById('inputBox').value = '';
+            currentArray = [];
             displayList([]);
-            showStatus('List deleted successfully!');
+            showStatus('All data deleted successfully!');
         } catch (error) {
             showStatus('Error deleting data: ' + error.message, true);
+        }
+    });
+
+    document.getElementById('addNoBtn').addEventListener('click', async function() {
+        try {
+            const newArray = [...currentArray, "NO"];
+            await saveData(newArray);
+            displayList(newArray);
+            showStatus('"NO" added successfully!');
+        } catch (error) {
+            showStatus('Error adding NO: ' + error.message, true);
         }
     });
 
@@ -237,8 +276,5 @@ color: #333;
     // Load data immediately when page loads
     window.addEventListener('load', loadSession);
 </script>
-
-```
-
 </body>
 </html>
